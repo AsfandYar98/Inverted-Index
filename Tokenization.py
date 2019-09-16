@@ -32,7 +32,7 @@ open('termids.txt', 'w').close()
 open('term_index.txt', 'w').close()
 
 termList = {}
-index = OrderedDict()
+index = {}
 docID = 0
 termID = 0
 termFreq = {}
@@ -42,7 +42,6 @@ l = len(os.listdir(path_to_corpus))
 with open("docids.txt", 'a', encoding='utf-8', errors='ignore') as map_doc, open("termids.txt", 'a', encoding='utf-8',
                                                                                  errors='ignore') as term_doc, open(
     "term_index.txt", 'a', encoding='utf-8', errors='ignore') as inverted_index:
-
     for filename in os.listdir(path_to_corpus):
         tmp = os.path.basename(filename)
         docTitle = tmp
@@ -76,11 +75,26 @@ with open("docids.txt", 'a', encoding='utf-8', errors='ignore') as map_doc, open
         for j in range(0, len(tokens)):
             if tokens[j] not in termList:
                 termID = termID + 1
-                index[termID] = [1,0, (docID, j)]
-                #docFreq = docFreq + 1
+                index[termID] = [1, 0, (docID, j)]
+                # docFreq = docFreq + 1
                 termList[tokens[j]] = termID
                 term_doc.write(str(termList[tokens[j]]) + "\t" + tokens[j] + "\r\n")
             else:
                 index[termID].append((docID, j))
-                index[termID][0] =+1
+                index[termID][0] = index[termID][0] + 1
             j = j + 1
+
+with open("term_index.txt", 'w', encoding='utf8') as termIndex:
+    for key in index:
+        termIndex.write("\n")
+        termIndex.write(str(key) + "\t")
+
+        for i in range(len(index[key])):
+            if i==0:
+                termIndex.write(str(index[key][0]) + "\t")
+                termIndex.write(str(index[key][1]) + "\t")
+                continue
+            elif i==1:
+                continue
+            else:
+                termIndex.write(str(index[key][i][0]) + "," + str(index[key][i][1]) + "\t")
