@@ -22,7 +22,6 @@ if not os.path.exists(corpus_folder):
 
 tokenizer = RegexpTokenizer(r'[a-zA-Z0-9]*[a-zA-Z][a-zA-Z0-9]*')
 stemmer = PorterStemmer()
-termList = {}
 path_to_stopList = "stoplist.txt"
 stopList_file = os.path.join(os.getcwd(), path_to_stopList)
 stopWords = open(stopList_file).read()
@@ -35,8 +34,8 @@ termList = {}
 index = {}
 docID = 0
 termID = 0
-termFreq = {}
-docFreq = {}
+termFreq = 0
+docFreq = 0
 
 l = len(os.listdir(path_to_corpus))
 with open("docids.txt", 'a', encoding='utf-8', errors='ignore') as map_doc, open("termids.txt", 'a', encoding='utf-8',
@@ -75,14 +74,50 @@ with open("docids.txt", 'a', encoding='utf-8', errors='ignore') as map_doc, open
         for j in range(0, len(tokens)):
             if tokens[j] not in termList:
                 termID = termID + 1
-                index[termID] = [1, 0, (docID, j)]
-                # docFreq = docFreq + 1
                 termList[tokens[j]] = termID
+                index[termID] = [1, 0, (docID, j)]
                 term_doc.write(str(termList[tokens[j]]) + "\t" + tokens[j] + "\r\n")
             else:
-                index[termID].append((docID, j))
-                index[termID][0] = index[termID][0] + 1
-            j = j + 1
+                index[termList[tokens[j]]].append((docID, j))
+                index[termList[tokens[j]]][0] = index[termList[tokens[j]]][0] + 1
+
+print(index)
+
+for key in index:
+    tempDoc = 0
+    tempPos = 0
+    newTempDoc = 0
+    newTempPos =0
+    for i in range(len(index[key])):
+        if i == 0 or i  == 1:
+            continue
+        elif i ==2:
+            tempDoc = index[key][2][0]
+            tempPos = index[key][2][1]
+            index[key][1] = index[key][1] + 1
+        else:
+            if tempDoc == index[key][i][0]:
+                newTempDoc = index[key][i][0]
+                newTempPos = index[key][i][1]
+
+                tuple =(newTempDoc - tempDoc, newTempPos - tempPos)
+                index[key][i] = tuple
+
+                tempDoc = newTempDoc
+                tempPos = newTempPos
+
+            elif tempDoc != index[key][i][0]:
+                index[key][1] = index[key][1] + 1
+
+                newTempDoc = index[key][i][0]
+                newTempPos = index[key][i][1]
+
+                tuple = (newTempDoc - tempDoc, index[key][i][1])
+                index[key][i] = tuple
+
+                tempDoc = newTempDoc
+                tempPos = newTempPos
+
 
 with open("term_index.txt", 'w', encoding='utf8') as termIndex:
     for key in index:
@@ -98,3 +133,5 @@ with open("term_index.txt", 'w', encoding='utf8') as termIndex:
                 continue
             else:
                 termIndex.write(str(index[key][i][0]) + "," + str(index[key][i][1]) + "\t")
+
+del index
